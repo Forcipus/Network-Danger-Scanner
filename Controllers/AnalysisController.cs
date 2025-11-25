@@ -21,9 +21,9 @@ namespace CyberAnalyzer.Controllers
         private static readonly ConcurrentBag<object> SavedReports = new ConcurrentBag<object>();
 
         //api key
-        private const string VirusTotalApiKey = "0c4126b1020f9e5f3f7346fa3983a650f254c20d7901b7c8a79673b3611f26a6";
-        private const string AbuseIpdbApiKey = "d63fb5a8a4779b3c9481ee09f8c1a2d7301658a0bfa59399288c3aa7cc5e3fb63076849d046da752";
-        private const string ShodanApiKey = "lOH0g1Yqm6hT7g5CuyZqEOM469jF4lFs";
+        private const string VirusTotalApiKey = "";
+        private const string AbuseIpdbApiKey = "";
+        private const string ShodanApiKey = "";
 
         [HttpGet("analyze")]
         public async Task<IActionResult> Analyze([FromQuery] string query)
