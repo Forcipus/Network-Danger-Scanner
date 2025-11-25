@@ -1,0 +1,256 @@
+﻿@{
+    //ViewData["Title"] = "Threat Intelligence Aggregator";
+}
+
+<! -- Bootstrap CDN -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<div class="d-flex flex-column min-vh-100 bg-light">
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+        <div class="container">
+            <a class="navbar-brand" href="#">Threat Intelligence Aggregator</a>
+        </div>
+    </nav>
+
+    <main class="container my-5 flex-grow-1">
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-10 col-lg-8">
+                <div class="card p-4 shadow-sm">
+                    <h3 class="text-center mb-3">🔍 Sorgula</h3>
+
+                    <form id="analyzeForm" class="d-flex gap-2 mb-3">
+                        <input id="queryInput" class="form-control" type="text" placeholder="IP, domain veya URL girin..." />
+                        <button class="btn btn-primary" type="submit">Analiz Et</button>
+                    </form>
+
+                    <div id="resultsCard" class="card mb-3" style="display:none;">
+                        <div class="card-body">
+                            <h5 class="card-title">Analiz Sonuçları</h5>
+                            <div id="resultsContent" class="mb-3"></div>
+                            <div class="d-flex justify-content-end">
+                                <button id="saveBtn" class="btn btn-success">💾 Raporu Kaydet</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="savedSection" class="mt-4">
+                        <h5>Kayıtlı Raporlar</h5>
+                        <ul id="reportList" class="list-group"></ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-white text-center py-3 shadow-sm">
+        <small>Proje — Web Tabanlı Tehdit İstihbarat Toplayıcı</small>
+    </footer>
+</div>
+
+<!-- Scriptler: Bootstrap (opsiyonel) ve uygulama JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+/*
+  MVC View için final script.
+  - Analiz: GET /api/ThreatIntel/lookup?query=...
+  - Kaydetme: POST /api/ThreatIntel/save  (eğer backend yoksa localStorage fallback)
+  - Listeleme: GET /api/ThreatIntel/saved (eğer backend yoksa localStorage'dan okur)
+*/
+
+const analyzeForm = document.getElementById('analyzeForm');
+const queryInput = document.getElementById('queryInput');
+const resultsCard = document.getElementById('resultsCard');
+const resultsContent = document.getElementById('resultsContent');
+const saveBtn = document.getElementById('saveBtn');
+const reportList = document.getElementById('reportList');
+
+let currentReport = null;
+
+analyzeForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const q = queryInput.value.trim();
+    if (!q) { alert('Lütfen bir IP, domain veya URL girin.'); return; }
+
+    // Gösterge
+    resultsContent.innerHTML = '<p class="text-muted">Yükleniyor...</p>';
+    resultsCard.style.display = 'none';
+
+    try {
+        // Buradaki route backend'ine göre ayarlanmalı.
+        const res = await fetch(`/api/ThreatIntel/lookup?query=${encodeURIComponent(q)}`, { method: 'GET' });
+        if (!res.ok) throw new Error('Backend yanıtı başarısız: ' + res.status);
+
+        const data = await res.json();
+
+        // currentReport olarak sakla (kaydetme için)
+        currentReport = normalizeReportForSave(data);
+
+        // Gösterimi güzelleştir
+        resultsContent.innerHTML = renderReportHTML(data);
+        resultsCard.style.display = 'block';
+    } catch (err) {
+        console.error(err);
+        resultsContent.innerHTML = `<p class="text-danger">Veri alınırken hata oluştu: ${err.message}</p>`;
+        resultsCard.style.display = 'block';
+    }
+});
+
+// Kaydetme: önce backend'e POST dene, yoksa localStorage fallback
+saveBtn.addEventListener('click', async () => {
+    if (!currentReport) { alert('Önce bir sorgu çalıştırın.'); return; }
+
+    try {
+        const res = await fetch('/api/ThreatIntel/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(currentReport)
+        });
+
+        if (res.ok) {
+            const j = await res.json();
+            alert(j.message ?? 'Rapor sunucuya kaydedildi.');
+        } else {
+            // fallback localStorage
+            //saveLocal(currentReport);
+            
+        }
+    } catch (err) {
+        //console.warn('POST save failed, fallback to localStorage', err);
+        //saveLocal(currentReport);
+        //alert('Rapor yerel olarak kaydedildi (localStorage).');
+    }
+
+    loadReports();
+});
+
+// Raporları yükle: önce backend (/api/ThreatIntel/saved) dene, yoksa localStorage
+async function loadReports() {
+    reportList.innerHTML = '';
+    let reports = null;
+    try {
+        const res = await fetch('/api/ThreatIntel/saved');
+        if (res.ok) {
+            reports = await res.json();
+        } else {
+            // fallback
+            reports = JSON.parse(localStorage.getItem('tia_reports') || '[]');
+        }
+    } catch (err) {
+        reports = JSON.parse(localStorage.getItem('tia_reports') || '[]');
+    }
+
+    if (!reports || reports.length === 0) {
+        reportList.innerHTML = '<li class="list-group-item text-muted">Henüz kayıtlı rapor yok.</li>';
+        return;
+    }
+
+    reports.forEach(r => {
+        const li = document.createElement('li');
+        li.className = 'list-group-item d-flex justify-content-between align-items-center';
+        li.innerHTML = `
+            <div>
+                <strong>${escapeHtml(r.query)}</strong>
+                <div class="text-muted small">Risk: <span class="badge bg-${getRiskColor(r.overallRisk)}">${r.overallRisk}</span></div>
+            </div>
+            <div>
+                <button class="btn btn-sm btn-outline-primary me-1" onclick='viewReport(${JSON.stringify(escapeForInline(r))})'>Görüntüle</button>
+            </div>
+        `;
+        reportList.appendChild(li);
+    });
+}
+
+// Görüntüleme fonksiyonu (report objesini alır)
+window.viewReport = (report) => {
+    currentReport = report;
+    resultsContent.innerHTML = renderReportHTML(report);
+    resultsCard.style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+// Basit normalize: bazı controller JSON alanlarına göre ayarlama
+function normalizeReportForSave(apiData) {
+    // Beklenen alan adlarına göre normalize et
+    return {
+        query: apiData.query ?? apiData.ip ?? '',
+        overallRisk: apiData.overallRisk ?? apiData.OverallRisk ?? apiData.overallRisk ?? 'Unknown',
+        virusSummary: summarizeApiField(apiData.virusTotal),
+        abuseSummary: summarizeApiField(apiData.abuseIPDB),
+        shodanSummary: summarizeApiField(apiData.shodan),
+        createdAt: new Date().toISOString()
+    };
+}
+
+// Görsel HTML oluşturucu
+function renderReportHTML(data) {
+    const vt = data.virusTotal ? prettyJson(data.virusTotal) : '<em>VirusTotal veri yok</em>';
+    const abuse = data.abuseIPDB ? prettyJson(data.abuseIPDB) : '<em>AbuseIPDB veri yok</em>';
+    const shodan = data.shodan ? prettyJson(data.shodan) : '<em>Shodan veri yok</em>';
+    const risk = (data.overallRisk ?? data.OverallRisk ?? 'Unknown');
+
+    return `
+        <p><strong>Sorgu:</strong> ${escapeHtml(data.query)}</p>
+        <p><strong>Genel Risk:</strong> <span class="badge bg-${getRiskColor(risk)}">${escapeHtml(risk)}</span></p>
+        <hr/>
+        <h6>VirusTotal Özet</h6>
+        <div class="small mb-2">${vt}</div>
+        <h6>AbuseIPDB Özet</h6>
+        <div class="small mb-2">${abuse}</div>
+        <h6>Shodan Özet</h6>
+        <div class="small mb-2">${shodan}</div>
+    `;
+}
+
+// Özetleme: raw JSON ise stringify kısa, string ise olduğu gibi döndür
+function summarizeApiField(f) {
+    if (!f) return 'No data';
+    if (typeof f === 'string') return f;
+    try {
+        return JSON.stringify(f, null, 2);
+    } catch {
+        return String(f);
+    }
+}
+
+// JSON'u okunaklı göster
+function prettyJson(obj) {
+    try {
+        if (typeof obj === 'string') return '<pre>' + escapeHtml(obj) + '</pre>';
+        return '<pre>' + escapeHtml(JSON.stringify(obj, null, 2)) + '</pre>';
+    } catch { return '<pre>Unable to display</pre>'; }
+}
+
+// localStorage helpers
+function saveLocal(report) {
+    const arr = JSON.parse(localStorage.getItem('tia_reports') || '[]');
+    arr.push(report);
+    localStorage.setItem('tia_reports', JSON.stringify(arr));
+}
+
+// Yardımcılar
+function getRiskColor(risk) {
+    switch ((risk || '').toLowerCase()) {
+        case 'low': return 'success';
+        case 'medium': return 'warning';
+        case 'high': return 'danger';
+        default: return 'secondary';
+    }
+}
+function escapeHtml(s) {
+    if (!s && s !== 0) return '';
+    return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+// escape for inline JSON in onclick (turns object into a safe string)
+function escapeForInline(obj) {
+    // JSON.stringify + escape quotes for embedding; return a safe JS object literal in string form
+    return JSON.stringify(obj).replace(/</g, '\\u003c').replace(/"/g, '\\"');
+}
+
+loadReports();
+</script>
