@@ -71,29 +71,83 @@ namespace ThreatIntelAPI.Controllers
             await QueryAbuseIPDB(report, ipToCheck);
             await QueryShodan(report, ipToCheck);
 
-            // --- 3) Basic risk scoring ---
+
+            // --- 3) Comprehensive risk scoring ---
             try
             {
-                if (report.AbuseIPDB is JsonElement abuseEl &&
-                    abuseEl.TryGetProperty("data", out var dataEl) &&
-                    dataEl.TryGetProperty("abuseConfidenceScore", out var confEl) &&
-                    confEl.ValueKind == JsonValueKind.Number)
+                int abuseScore = 0;
+                int vtMaliciousCount = 0;
+                bool hasShodanData = false;
+
+                // 1. AbuseIPDB Skoru (0-100 arası)
+                if (report.AbuseIPDB is JsonElement abuseEl && abuseEl.ValueKind == JsonValueKind.Object)
                 {
-                    int score = confEl.GetInt32();
-                    report.OverallRisk = score > 50 ? "High" :
-                                         score > 20 ? "Medium" :
-                                         "Low";
+                    if (abuseEl.TryGetProperty("data", out var dataEl) &&
+                        dataEl.TryGetProperty("abuseConfidenceScore", out var confEl))
+                    {
+                        abuseScore = confEl.GetInt32();
+                    }
                 }
-                //Console.WriteLine(report.OverallRisk);
+
+                // 2. VirusTotal Malicious tespiti yapan motor sayısı
+                if (report.VirusTotal is JsonElement vtEl && vtEl.ValueKind == JsonValueKind.Object)
+                {
+                    if (vtEl.TryGetProperty("data", out var vtData) &&
+                        vtData.TryGetProperty("attributes", out var vtAttrs) &&
+                        vtAttrs.TryGetProperty("last_analysis_stats", out var vtStats) &&
+                        vtStats.TryGetProperty("malicious", out var vtMalicious))
+                    {
+                        vtMaliciousCount = vtMalicious.GetInt32();
+                    }
+                }
+
+                // 3. Shodan'da açık servis/port bilgisi var mı?
+                if (report.Shodan is JsonElement shoEl && shoEl.ValueKind == JsonValueKind.Object)
+                {
+                    // Shodan veri dönmüşse genellikle "data" veya "ports" dizisi dolu olur
+                    if (shoEl.TryGetProperty("ports", out var portsEl) && portsEl.GetArrayLength() > 0)
+                    {
+                        hasShodanData = true;
+                    }
+                }
+
+                // --- Karar Mantığı ---
+                // Yüksek Risk: Abuse skoru > 50 VEYA VT'de 3'ten fazla motor zararlı demişse
+                if (abuseScore > 50 || vtMaliciousCount >= 3)
+                {
+                    report.OverallRisk = "High";
+                }
+                // Orta Risk: Abuse skoru > 10 VEYA VT'de en az 1 motor zararlı demişse VEYA Shodan'da açık port varsa
+                else if (abuseScore > 10 || vtMaliciousCount > 0 || hasShodanData)
+                {
+                    report.OverallRisk = "Medium";
+                }
+                // Düşük Risk: Yukarıdakilerin hiçbiri karşılanmıyorsa
+                else
+                {
+                    report.OverallRisk = "Low";
+                }
             }
-            catch
+            catch (Exception ex)
             {
-                Console.WriteLine("Risk Score");
+                Console.WriteLine("Risk Score Calculation Error: " + ex.Message);
+                report.OverallRisk = "Unknown";
             }
 
             report.Timestamp = DateTime.UtcNow;
-            await _mongo.SaveReport(report);
-            return Ok(report);
+            /*await _mongo.SaveReport(report);*/
+            return Ok(new
+            {
+                id = report.Id,
+                query = report.Query,
+                resolvedIP = report.ResolvedIP,
+                overallRisk = report.OverallRisk,
+                virusTotal = report.VirusTotal,
+                abuseIPDB = report.AbuseIPDB,
+                shodan = report.Shodan,
+                timestamp = report.Timestamp
+            });
+             
         }
 
 
@@ -114,9 +168,19 @@ namespace ThreatIntelAPI.Controllers
         [HttpGet("saved")]
         public async Task<IActionResult> Saved()
         {
-            var reports = await _mongo.GetReports();
-            return Ok(reports);
+            try
+            {
+                var reports = await _mongo.GetReports();
+                return Ok(reports);
+            }
+            catch (Exception ex)
+            {
+                // Loglama yapıp boş liste dönerek frontend'in çökmesini engelliyoruz
+                Console.WriteLine($"Liste yükleme hatası: {ex.Message}");
+                return Ok(new List<ThreatReport>());
+            }
         }
+        
 
         // Orijinal /reports endpoint DO NOT REMOVE
         [HttpGet("reports")]
@@ -124,6 +188,21 @@ namespace ThreatIntelAPI.Controllers
         {
             var reports = await _mongo.GetReports();
             return Ok(reports);
+        }
+
+        //Delete 
+        [HttpDelete("delete/{id}")]
+        public async Task<IActionResult> Delete(string id)
+        {
+            try
+            {
+                await _mongo.DeleteReport(id);
+                return Ok(new { message = "Rapor silindi" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Silme hatası", error = ex.Message });
+            }
         }
 
 
@@ -173,7 +252,14 @@ namespace ThreatIntelAPI.Controllers
             {
                 var resp = await client.GetAsync($"ip_addresses/{ip}");
                 if (resp.IsSuccessStatusCode)
-                    report.VirusTotal = JsonDocument.Parse(await resp.Content.ReadAsStringAsync()).RootElement.Clone();
+                {
+                    var content = await resp.Content.ReadAsStringAsync();
+                    using (JsonDocument doc = JsonDocument.Parse(content))
+                    {
+                        // .Clone() kullanmak, JsonDocument dispose edilse bile verinin hafızada kalmasını sağlar
+                        report.VirusTotal = doc.RootElement.Clone();
+                    }
+                }
             }
             catch { }
         }
@@ -191,7 +277,13 @@ namespace ThreatIntelAPI.Controllers
             {
                 var resp = await client.GetAsync($"check?ipAddress={ip}&maxAgeInDays=90");
                 if (resp.IsSuccessStatusCode)
-                    report.AbuseIPDB = JsonDocument.Parse(await resp.Content.ReadAsStringAsync()).RootElement.Clone();
+                {
+                    var content = await resp.Content.ReadAsStringAsync();
+                    using (JsonDocument doc = JsonDocument.Parse(content))
+                    {
+                        report.AbuseIPDB = doc.RootElement.Clone();
+                    }
+                }
             }
             catch { }
         }
@@ -206,7 +298,13 @@ namespace ThreatIntelAPI.Controllers
             {
                 var resp = await client.GetAsync($"shodan/host/{ip}?key={key}");
                 if (resp.IsSuccessStatusCode)
-                    report.Shodan = JsonDocument.Parse(await resp.Content.ReadAsStringAsync()).RootElement.Clone();
+                {
+                    var content = await resp.Content.ReadAsStringAsync();
+                    using (JsonDocument doc = JsonDocument.Parse(content))
+                    {
+                        report.Shodan = doc.RootElement.Clone();
+                    }
+                }
             }
             catch { }
         }

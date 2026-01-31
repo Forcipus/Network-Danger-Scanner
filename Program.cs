@@ -1,3 +1,4 @@
+using Scalar.AspNetCore;
 using ThreatIntelAPI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,6 +11,20 @@ builder.Services.AddControllersWithViews()
         options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
         options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
     });
+
+builder.Services.AddSwaggerGen();
+
+// Add Swagger services
+/*builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new global::Microsoft.OpenApi.Models.OpenApiInfo
+    {
+        Title = "Threat Intelligence API",
+        Version = "v1",
+        Description = "IP, Domain ve URL analizi yapan tehdit istihbarat toplayýcý."
+    });
+});*/
 
 builder.Services.AddCors(options =>
 {
@@ -60,5 +75,23 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+// Show Swagger and Scalar in development environment
+if (app.Environment.IsDevelopment())
+{
+    // Swagger JSON dosyasýný oluþturur
+    app.UseSwagger(options =>
+    {
+        options.RouteTemplate = "/openapi/{documentName}.json";
+    });
+
+    // Scalar Arayüzünü Etkinleþtir
+    app.MapScalarApiReference(options =>
+    {
+        options.WithTitle("Threat Intelligence API")
+               .WithTheme(ScalarTheme.Moon)
+               .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient);
+    });
+}
 
 app.Run();

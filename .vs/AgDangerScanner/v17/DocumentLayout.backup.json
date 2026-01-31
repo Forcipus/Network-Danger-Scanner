@@ -1,0 +1,117 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\dotNet\\AgDangerScanner\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{2A67B202-D560-44A1-A30C-BBED4EC381EE}|AgDangerScanner.csproj|c:\\dotnet\\agdangerscanner\\views\\home\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{2A67B202-D560-44A1-A30C-BBED4EC381EE}|AgDangerScanner.csproj|solutionrelative:views\\home\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2A67B202-D560-44A1-A30C-BBED4EC381EE}|AgDangerScanner.csproj|c:\\dotnet\\agdangerscanner\\controllers\\threatintelcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2A67B202-D560-44A1-A30C-BBED4EC381EE}|AgDangerScanner.csproj|solutionrelative:controllers\\threatintelcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2A67B202-D560-44A1-A30C-BBED4EC381EE}|AgDangerScanner.csproj|c:\\dotnet\\agdangerscanner\\models\\threatreport.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2A67B202-D560-44A1-A30C-BBED4EC381EE}|AgDangerScanner.csproj|solutionrelative:models\\threatreport.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2A67B202-D560-44A1-A30C-BBED4EC381EE}|AgDangerScanner.csproj|c:\\dotnet\\agdangerscanner\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{2A67B202-D560-44A1-A30C-BBED4EC381EE}|AgDangerScanner.csproj|solutionrelative:appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2A67B202-D560-44A1-A30C-BBED4EC381EE}|AgDangerScanner.csproj|c:\\dotnet\\agdangerscanner\\controllers\\mongoservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2A67B202-D560-44A1-A30C-BBED4EC381EE}|AgDangerScanner.csproj|solutionrelative:controllers\\mongoservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2A67B202-D560-44A1-A30C-BBED4EC381EE}|AgDangerScanner.csproj|c:\\dotnet\\agdangerscanner\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{2A67B202-D560-44A1-A30C-BBED4EC381EE}|AgDangerScanner.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 3,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\dotNet\\AgDangerScanner\\Program.cs",
+              "RelativeDocumentMoniker": "Program.cs",
+              "ToolTip": "C:\\dotNet\\AgDangerScanner\\Program.cs",
+              "RelativeToolTip": "Program.cs",
+              "ViewState": "AgIAAD8AAAAAAAAAAADwv0cAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-03T07:45:28.016Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "ThreatReport.cs",
+              "DocumentMoniker": "C:\\dotNet\\AgDangerScanner\\Models\\ThreatReport.cs",
+              "RelativeDocumentMoniker": "Models\\ThreatReport.cs",
+              "ToolTip": "C:\\dotNet\\AgDangerScanner\\Models\\ThreatReport.cs",
+              "RelativeToolTip": "Models\\ThreatReport.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAAAdAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-23T08:41:52.071Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "C:\\dotNet\\AgDangerScanner\\appsettings.json",
+              "RelativeDocumentMoniker": "appsettings.json",
+              "ToolTip": "C:\\dotNet\\AgDangerScanner\\appsettings.json",
+              "RelativeToolTip": "appsettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAGAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-11-03T07:26:59.174Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Index.cshtml",
+              "DocumentMoniker": "C:\\dotNet\\AgDangerScanner\\Views\\Home\\Index.cshtml",
+              "RelativeDocumentMoniker": "Views\\Home\\Index.cshtml",
+              "ToolTip": "C:\\dotNet\\AgDangerScanner\\Views\\Home\\Index.cshtml*",
+              "RelativeToolTip": "Views\\Home\\Index.cshtml*",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAAABwAAAAEAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-10-19T09:58:50.196Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "MongoService.cs",
+              "DocumentMoniker": "C:\\dotNet\\AgDangerScanner\\Controllers\\MongoService.cs",
+              "RelativeDocumentMoniker": "Controllers\\MongoService.cs",
+              "ToolTip": "C:\\dotNet\\AgDangerScanner\\Controllers\\MongoService.cs",
+              "RelativeToolTip": "Controllers\\MongoService.cs",
+              "ViewState": "AgIAAAYAAAAAAAAAAAAAACQAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-23T07:02:12.622Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "ThreatIntelController.cs",
+              "DocumentMoniker": "C:\\dotNet\\AgDangerScanner\\Controllers\\ThreatIntelController.cs",
+              "RelativeDocumentMoniker": "Controllers\\ThreatIntelController.cs",
+              "ToolTip": "C:\\dotNet\\AgDangerScanner\\Controllers\\ThreatIntelController.cs",
+              "RelativeToolTip": "Controllers\\ThreatIntelController.cs",
+              "ViewState": "AgIAAE0AAAAAAAAAAAAowGAAAAAfAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-03T07:25:09.339Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

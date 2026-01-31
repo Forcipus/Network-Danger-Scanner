@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("AgDangerScanner")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+881775e51733e6e4c06b7090ee01c4467ab4cb4e")]
 [assembly: System.Reflection.AssemblyProductAttribute("AgDangerScanner")]
 [assembly: System.Reflection.AssemblyTitleAttribute("AgDangerScanner")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
